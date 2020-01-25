@@ -10,7 +10,7 @@ const GITHUB_ENDPOINT = 'https://api.github.com/graphql';
 const httpLink = new HttpLink({
   uri: GITHUB_ENDPOINT,
   headers: {
-    authorization: `Bearer ${process.env.REACT_APP_GITHUB_KEY}`
+    authorization: `bearer ${process.env.REACT_APP_GITHUB_KEY}`
   }
 });
 
@@ -34,11 +34,48 @@ export const client = new ApolloClient({
   cache
 });
 
+// Fragments
+
+export const REPOSITORY_FRAGMENT = gql`
+  fragment repository on Repository {
+    id
+    name
+    url
+    description
+    primaryLanguage {
+      name
+    }
+    owner {
+      login
+      url
+    }
+    stargazers {
+      totalCount
+    }
+    viewerHasStarred
+    watchers {
+      totalCount
+    }
+    viewerSubscription
+  }
+`;
+
 // Queries
 
 export const STAR_REPOSITORY = gql`
   mutation($id: ID!) {
     addStar(input: { starrableId: $id }) {
+      starrable {
+        id
+        viewerHasStarred
+      }
+    }
+  }
+`;
+
+export const UNSTAR_REPOSITORY = gql`
+  mutation($id: ID!) {
+    removeStar(input: { starrableId: $id }) {
       starrable {
         id
         viewerHasStarred
@@ -54,28 +91,11 @@ export const GET_CURRENT_USER_REPO = gql`
       repositories(first: 5, orderBy: { direction: DESC, field: STARGAZERS }) {
         edges {
           node {
-            id
-            name
-            url
-            description
-            primaryLanguage {
-              name
-            }
-            owner {
-              login
-              url
-            }
-            stargazers {
-              totalCount
-            }
-            viewerHasStarred
-            watchers {
-              totalCount
-            }
-            viewerSubscription
+            ...repository
           }
         }
       }
     }
   }
+  ${REPOSITORY_FRAGMENT}
 `;

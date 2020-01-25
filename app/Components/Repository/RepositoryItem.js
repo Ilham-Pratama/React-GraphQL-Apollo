@@ -1,9 +1,38 @@
 import React from 'react';
 import { Mutation } from 'react-apollo';
-import { STAR_REPOSITORY } from '../../config';
+import {
+  STAR_REPOSITORY,
+  UNSTAR_REPOSITORY,
+  REPOSITORY_FRAGMENT
+} from '../../config';
 import Button from '../Button';
 import Loading from '../Loading';
 import Error from '../Error';
+
+const updateStar = type => {
+  return (client, mutationResult) => {
+    const { id } = mutationResult.data[type].starrable;
+    const repository = client.readFragment({
+      id: `Repository:${id}`,
+      fragment: REPOSITORY_FRAGMENT
+    });
+    const totalCount =
+      type === 'addStar'
+        ? repository.stargazers.totalCount + 1
+        : repository.stargazers.totalCount - 1;
+    client.writeFragment({
+      id: `Repository:${id}`,
+      fragment: REPOSITORY_FRAGMENT,
+      data: {
+        ...repository,
+        stargazers: {
+          ...repository.stargazers,
+          totalCount
+        }
+      }
+    });
+  };
+};
 
 const RepositoryItem = ({
   name,
@@ -30,25 +59,30 @@ const RepositoryItem = ({
           )}
         </div>
         <div>
-          {!viewerHasStarred ? (
-            <Mutation mutation={STAR_REPOSITORY} variables={{ id }}>
-              {(addStar, { data, loading, error }) => {
-                if (loading) {
-                  return <Loading />;
-                }
-                if (error) {
-                  return <Error message={error} />;
-                }
-                return (
-                  <Button onClick={addStar}>
-                    {stargazers.totalCount} Stars
-                  </Button>
-                );
-              }}
-            </Mutation>
-          ) : (
-            ''
-          )}
+          <Mutation
+            mutation={viewerHasStarred ? UNSTAR_REPOSITORY : STAR_REPOSITORY}
+            variables={{ id }}
+            update={updateStar(viewerHasStarred ? 'removeStar' : 'addStar')}
+          >
+            {(addStar, { data, loading, error }) => {
+              if (loading) {
+                return <Loading />;
+              }
+              if (error) {
+                return <Error message={error} />;
+              }
+              return (
+                <Button
+                  onClick={addStar}
+                  title={
+                    viewerHasStarred ? 'UNSTAR_REPOSITORY' : 'STAR_REPOSITORY'
+                  }
+                >
+                  {stargazers.totalCount} Stars
+                </Button>
+              );
+            }}
+          </Mutation>
         </div>
       </div>
       <div className="RepositoryItem-description">
