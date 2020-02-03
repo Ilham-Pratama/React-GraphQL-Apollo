@@ -1,7 +1,18 @@
 import React from 'react';
+import { Button } from '@material-ui/core';
 
-const Button = ({ children, ...props }) => (
-  <button {...props}>{children}</button>
+const ButtonBase = ({ children, style = {}, ...props }) => (
+  <Button
+    variant="contained"
+    color="primary"
+    {...props}
+    style={{
+      ...style,
+      fontFamily: style.fontFamily ? style.fontFamily : 'Raleway-regular'
+    }}
+  >
+    {children}
+  </Button>
 );
 
-export default Button;
+export default ButtonBase;
