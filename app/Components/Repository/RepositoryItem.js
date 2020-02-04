@@ -5,7 +5,7 @@ import {
   UNSTAR_REPOSITORY,
   REPOSITORY_FRAGMENT,
   WATCH_REPOSITORY
-} from '../../config';
+} from '../../Configs/profileConfig';
 import Button from '../Button';
 import Loading from '../Loading';
 import Error from '../Error';
